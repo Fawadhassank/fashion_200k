@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visual Search — Fashion200k Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --indigo-900:#1B2A4A;
+    --indigo-800:#22345A;
+    --indigo-700:#2C4270;
+    --paper:#F3EFE4;
+    --paper-dim:#E6E1D2;
+    --mustard:#E3A733;
+    --rust:#C1502E;
+    --ink:#1A1712;
+    --chalk:#F5F3EE;
+    --chalk-dim:#B9C2D6;
+    --line:rgba(243,239,228,0.18);
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, var(--indigo-800) 0%, var(--indigo-900) 55%);
+    color:var(--chalk);
+    font-family:'Work Sans', sans-serif;
+    min-height:100vh;
+    padding-bottom:80px;
+  }
+
+  ::selection{ background:var(--mustard); color:var(--ink); }
+
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:48px 24px 0;
+  }
+
+  /* ---------- header ---------- */
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--chalk-dim);
+    border-bottom:1px solid var(--line);
+    padding-bottom:18px;
+  }
+  .topbar span.mark{ color:var(--mustard); }
+
+  .hero{
+    padding:56px 0 40px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--mustard);
+    margin:0 0 14px;
+  }
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    text-transform:uppercase;
+    font-size:clamp(40px, 7vw, 78px);
+    line-height:0.96;
+    margin:0 0 18px;
+    letter-spacing:0.01em;
+  }
+  h1 em{
+    font-style:normal;
+    color:var(--mustard);
+  }
+  .sub{
+    max-width:520px;
+    color:var(--chalk-dim);
+    font-size:16px;
+    line-height:1.55;
+    margin:0 0 40px;
+  }
+
+  /* ---------- upload swatch card ---------- */
+  .swatch{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:6px;
+    padding:28px;
+    position:relative;
+    box-shadow:0 24px 48px -20px rgba(0,0,0,0.5);
+  }
+  .swatch::before{
+    content:"";
+    position:absolute;
+    inset:8px;
+    border:1.5px dashed rgba(26,23,18,0.28);
+    border-radius:3px;
+    pointer-events:none;
+  }
+  .swatch-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:rgba(26,23,18,0.55);
+    margin-bottom:18px;
+  }
+
+  #dropzone{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    padding:22px;
+    border:1px solid rgba(26,23,18,0.15);
+    border-radius:4px;
+    background:rgba(255,255,255,0.35);
+    transition:background .15s ease, border-color .15s ease;
+    cursor:pointer;
+  }
+  #dropzone.drag{
+    background:rgba(227,167,51,0.18);
+    border-color:var(--mustard);
+  }
+  #dropzone .dz-icon{
+    width:46px;height:46px;flex:none;
+    border-radius:50%;
+    background:var(--indigo-900);
+    display:flex;align-items:center;justify-content:center;
+  }
+  #dropzone .dz-icon svg{ width:20px;height:20px; }
+  #dropzone .dz-text{ flex:1; min-width:180px; }
+  #dropzone .dz-title{ font-weight:600; font-size:15px; margin:0 0 2px; }
+  #dropzone .dz-hint{ font-size:13px; color:rgba(26,23,18,0.55); margin:0; }
+  #dropzone .dz-preview{
+    width:52px;height:52px;border-radius:4px;object-fit:cover;
+    display:none;border:1px solid rgba(26,23,18,0.15);
+  }
+  input[type="file"]{ display:none; }
+
+  .controls{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-top:20px;
+    flex-wrap:wrap;
+  }
+  .stepper{
+    display:flex;
+    align-items:center;
+    gap:0;
+    font-family:'IBM Plex Mono', monospace;
+    border:1px solid rgba(26,23,18,0.2);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .stepper label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    padding:0 12px;
+    color:rgba(26,23,18,0.6);
+    border-right:1px solid rgba(26,23,18,0.15);
+    height:38px;
+    display:flex;align-items:center;
+    background:rgba(26,23,18,0.04);
+  }
+  .stepper button{
+    width:34px;height:38px;
+    border:none;background:transparent;
+    font-size:16px;cursor:pointer;color:var(--ink);
+  }
+  .stepper button:hover{ background:rgba(26,23,18,0.08); }
+  .stepper button:disabled{
+    opacity:0.3;
+    cursor:not-allowed;
+    background:transparent;
+  }
+  .stepper input{
+    width:36px;text-align:center;border:none;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;font-weight:600;color:var(--ink);
+    background:transparent;
+  }
+  .stepper input:focus{ outline:none; }
+
+  button.submit{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    font-size:15px;
+    background:var(--ink);
+    color:var(--chalk);
+    border:none;
+    border-radius:4px;
+    padding:12px 28px;
+    cursor:pointer;
+    transition:background .15s ease, transform .1s ease;
+  }
+  button.submit:hover{ background:var(--rust); }
+  button.submit:active{ transform:scale(0.98); }
+  button.submit:disabled{ opacity:0.6; cursor:progress; }
+
+  /* ---------- section headers ---------- */
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    margin:64px 0 24px;
+  }
+  .section-head h2{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    font-size:22px;
+    margin:0;
+  }
+  .section-head .count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--chalk-dim);
+  }
+  .section-head::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .query-row{ display:flex; gap:20px; align-items:flex-end; }
+  .query-row img{
+    width:120px;height:150px;object-fit:cover;
+    border-radius:4px;border:1px solid var(--line);
+  }
+
+  /* ---------- results grid: swing tags ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
+    gap:22px;
+  }
+
+  .tag{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:4px;
+    position:relative;
+    padding-top:22px;
+    box-shadow:0 16px 30px -16px rgba(0,0,0,0.55);
+    transition:transform .15s ease;
+  }
+  .tag:hover{ transform:translateY(-4px); }
+
+  .tag .hole{
+    position:absolute;
+    top:9px; left:50%;
+    transform:translateX(-50%);
+    width:11px;height:11px;
+    border-radius:50%;
+    background:var(--indigo-900);
+    box-shadow:0 0 0 2px var(--paper);
+  }
+  .tag .perforation{
+    position:absolute;
+    top:22px; left:0; right:0;
+    border-top:1.5px dashed rgba(26,23,18,0.25);
+  }
+
+  .tag-body{ padding:18px 14px 16px; }
+  .tag-img-wrap{
+    width:100%;
+    aspect-ratio:3/4;
+    overflow:hidden;
+    border-radius:3px;
+    margin-bottom:12px;
+    background:var(--paper-dim);
+  }
+  .tag-img-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+  .tag-cats{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:rgba(26,23,18,0.65);
+    line-height:1.5;
+    border-bottom:1px solid rgba(26,23,18,0.12);
+    padding-bottom:8px;
+    margin-bottom:8px;
+    word-break:break-word;
+  }
+  .tag-id{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:rgba(26,23,18,0.5);
+    margin-bottom:10px;
+  }
+
+  .gauge-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .gauge{
+    display:flex;
+    gap:2px;
+  }
+  .gauge i{
+    width:9px;height:14px;
+    background:rgba(26,23,18,0.15);
+    border-radius:1px;
+  }
+  .gauge i.on{ background:var(--rust); }
+
+  /* ---------- empty / error states ---------- */
+  .empty{
+    border:1px dashed var(--line);
+    border-radius:6px;
+    padding:36px;
+    text-align:center;
+    color:var(--chalk-dim);
+    font-size:14px;
+  }
+  .error-box{
+    border:1px solid var(--rust);
+    background:rgba(193,80,46,0.12);
+    color:var(--chalk);
+    border-radius:6px;
+    padding:18px 20px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+  }
+
+  /* ---------- loading overlay ---------- */
+  #overlay{
+    position:fixed; inset:0;
+    background:rgba(27,42,74,0.92);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:16px;
+    z-index:50;
+  }
+  #overlay.show{ display:flex; }
+  .spin{
+    width:34px;height:34px;
+    border-radius:50%;
+    border:3px solid rgba(243,239,228,0.25);
+    border-top-color:var(--mustard);
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  #overlay p{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--chalk-dim);
+  }
+
+  @media (max-width:520px){
+    .controls{ flex-direction:column; align-items:stretch; }
+    button.submit{ width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <div class="spin"></div>
+  <p>Matching silhouettes…</p>
+</div>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div><span class="mark">●</span> VISUAL SEARCH</div>
+    <div>FASHION200K INDEX</div>
+  </div>
+
+  <div class="hero">
+    <p class="eyebrow">Reverse image lookup</p>
+    <h1>Find it<br><em>by sight.</em></h1>
+    <p class="sub">Upload a photo of a garment and we'll rank the closest matches in the catalog by visual similarity — no keywords required.</p>
+
+    <form method="POST" enctype="multipart/form-data" id="searchForm">
+      <div class="swatch">
+        <p class="swatch-label">01 / Upload a reference photo</p>
+
+        <div id="dropzone">
+          <img class="dz-preview" id="dzPreview" alt="">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#F5F3EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="dz-text">
+            <p class="dz-title" id="dzTitle">Drop an image or click to browse</p>
+            <p class="dz-hint">JPG or PNG · up to 5 results</p>
+          </div>
+        </div>
+        <input type="file" name="file" id="fileInput" accept="image/*" required>
+
+        <div class="controls">
+          <div class="stepper">
+            <label for="topk">Results</label>
+            <button type="button" id="dec">−</button>
+            <input type="number" name="top_k" id="topk" value="5" min="1" max="5" readonly>
+            <button type="button" id="inc">+</button>
+          </div>
+          <button type="submit" class="submit" id="submitBtn">Search catalog</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {% if query_image %}
+  <div class="section-head"><h2>Your query</h2></div>
+  <div class="query-row">
+    <img src="{{ query_image }}" alt="Query image">
+  </div>
+  {% endif %}
+
+  {% if results %}
+    {% if results[0].error %}
+      <div class="section-head"><h2>Something went wrong</h2></div>
+      <div class="error-box">{{ results[0].error }}</div>
+    {% else %}
+      <div class="section-head">
+        <h2>Matches</h2>
+        <span class="count">{{ results|length }} found</span>
+      </div>
+      <div class="grid">
+        {% for r in results %}
+        <div class="tag">
+          <div class="hole"></div>
+          <div class="perforation"></div>
+          <div class="tag-body">
+            <div class="tag-img-wrap">
+              {% if r.img_data %}
+                <img src="{{ r.img_data }}" alt="Item {{ r.item_id }}">
+              {% endif %}
+            </div>
+            <div class="tag-cats">{{ r.category1 }} / {{ r.category2 }} / {{ r.category3 }}</div>
+            <div class="tag-id">ITEM #{{ r.item_id }}</div>
+            <div class="tag-id">QUALITY: {{ r.match_quality|upper }}</div>
+
+<p style="
+  font-size:11px;
+  line-height:1.45;
+  color:rgba(26,23,18,0.68);
+  margin:8px 0 10px;
+">
+  {{ r.explanation }}
+</p>
+            <div class="gauge-row">
+              <span>MATCH</span>
+              <span>{{ "%.0f"|format(r.score * 100) }}%</span>
+            </div>
+            <div class="gauge">
+              {% for i in range(10) %}
+                <i class="{{ 'on' if i < (r.score * 10)|round(0, 'floor') else '' }}"></i>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% elif query_image %}
+    <div class="empty">No matches came back for this image.</div>
+  {% endif %}
+
+</div>
+
+<script>
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const dzPreview = document.getElementById('dzPreview');
+  const dzTitle = document.getElementById('dzTitle');
+  const topk = document.getElementById('topk');
+  const form = document.getElementById('searchForm');
+  const overlay = document.getElementById('overlay');
+  const submitBtn = document.getElementById('submitBtn');
+
+  dropzone.addEventListener('click', () => fileInput.click());
+
+  ['dragenter','dragover'].forEach(evt =>
+    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); })
+  );
+  ['dragleave','drop'].forEach(evt =>
+    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); })
+  );
+  dropzone.addEventListener('drop', e => {
+    if (e.dataTransfer.files.length) {
+      fileInput.files = e.dataTransfer.files;
+      updatePreview();
+    }
+  });
+  fileInput.addEventListener('change', updatePreview);
+
+  function updatePreview(){
+    const file = fileInput.files[0];
+    if (!file) return;
+    dzTitle.textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = e => {
+      dzPreview.src = e.target.result;
+      dzPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  const decBtn = document.getElementById('dec');
+  const incBtn = document.getElementById('inc');
+  const TOPK_MIN = 1;
+  const TOPK_MAX = 5;
+
+  function syncStepperButtons(){
+    const val = parseInt(topk.value || TOPK_MIN);
+    decBtn.disabled = val <= TOPK_MIN;
+    incBtn.disabled = val >= TOPK_MAX;
+  }
+
+  decBtn.addEventListener('click', () => {
+    topk.value = Math.max(TOPK_MIN, parseInt(topk.value || TOPK_MIN) - 1);
+    syncStepperButtons();
+  });
+  incBtn.addEventListener('click', () => {
+    topk.value = Math.min(TOPK_MAX, parseInt(topk.value || TOPK_MIN) + 1);
+    syncStepperButtons();
+  });
+  syncStepperButtons();
+
+  form.addEventListener('submit', () => {
+    if (!fileInput.files.length) return;
+    submitBtn.disabled = true;
+    overlay.classList.add('show');
+  });
+</script>
+
+</body>
+</html>
