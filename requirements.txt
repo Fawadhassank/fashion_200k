@@ -3,3 +3,16 @@ pandas==3.0.3
 python-dateutil==2.9.0.post0
 six==1.17.0
 tzdata==2026.2
+fastapi
+uvicorn
+python-multipart
+flask
+requests
+pandas
+numpy
+pillow
+torch
+torchvision
+faiss-cpu
+open-clip-torch
+tqdm
